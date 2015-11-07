@@ -5,6 +5,8 @@
  */
 package com.reyk.dataTransferObjects;
 
+import java.util.Objects;
+
 /**
  *
  * @author MacAA
@@ -24,6 +26,11 @@ public class DTOUsers {
         this.username = username;
         this.password = password;
         this.email = email;
+    }
+    
+    public DTOUsers(String username)
+    {
+        this.username = username;
     }
 
     public DTOUsers() {
@@ -75,6 +82,27 @@ public class DTOUsers {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DTOUsers other = (DTOUsers) obj;
+        if (!Objects.equals(this.username, other.username)) {
+            return false;
+        }
+        return true;
     }
     
     
