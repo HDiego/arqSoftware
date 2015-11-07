@@ -20,6 +20,9 @@ public interface UsersSBLocal {
  
     void addUser(DTOUsers userDto);
     List<DTOUsers> getUsers();
-    
+    void updateUser(DTOUsers newUserDto);
+    DTOUsers getUser(String username);
+    boolean exists(String username);
+    void deleteUser(String username);
  
 }

@@ -19,5 +19,5 @@ public interface SingletonSBLocal {
     
     void AddUser(DTOUsers user);
     List<DTOUsers> getUsers();
-    
+    DTOUsers getUserByUsename(String username);
 }

@@ -12,7 +12,6 @@ import javax.faces.bean.RequestScoped;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -20,9 +19,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
 import javax.ws.rs.core.Response;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 /**
  * REST Web Service
  *
@@ -74,11 +75,18 @@ public class ServicesWS {
     public Response addUser(String json){
 
         Gson gson = new Gson();
-        
         DTOUsers dto = gson.fromJson(json, DTOUsers.class);
-        
-        usersSB.addUser(dto);
-        return Response.accepted("Success").build();
+        if(dto != null && !dto.getUsername().isEmpty()){
+            if(!usersSB.exists(dto.getUsername()))
+            {
+                usersSB.addUser(dto);
+                return Response.accepted("Success").build();
+            }
+            return Response.accepted("Username already exists.").build();
+        }
+        else{
+            return Response.accepted("Can't add user.").build();
+        }
     }
     
     @POST
@@ -102,21 +110,6 @@ public class ServicesWS {
         }
         }
     
-    
-    @POST
-    @Path("/addAuthor")
-    @Consumes("application/x-www-form-urlencoded")
-    public String addAuthor(
-            @FormParam("name") String name,
-            @FormParam("username") String username, 
-            @FormParam("password") String password){
-     
-        DTOUsers u = new DTOUsers(name, "apellido", username, password, "email del pibe");
-        usersSB.addUser(u);
-        
-        return "User: " + name + " has been added";
-    }
-    
     @GET
     @Path("/getUsers")
     @Consumes("application/json")
@@ -125,24 +118,74 @@ public class ServicesWS {
         if(usersSB != null){
             if(usersSB.getUsers().size() == 0){
                 return Response.ok("There are no users in the system").build();
-            
             }
             else{
                  Gson gson = new Gson(); // Or use new GsonBuilder().create();
                  List<DTOUsers> target = usersSB.getUsers();
                 return Response.accepted(gson.toJson(target)).build();
-           
             }
         } else {
             
             return Response.ok("El SB es null").build();
-        }
-       
-        
-        
-       
+        }   
     }
     
-   
+    @POST
+    @Path("/deleteUser")
+    @Consumes("application/json")
+    public Response deleteUser(String username)
+    {
+        Map<String, String> map = new Gson().fromJson(username, new TypeToken<Map<String, String>>() {}.getType());
+        String usernameA = map.get("username");
+        if(usersSB.exists(usernameA))
+        {
+            int count = usersSB.getUsers().size();
+            usersSB.deleteUser(usernameA);
+            int count2 = usersSB.getUsers().size();
+            if(count > count2)
+            {
+                return Response.accepted("Successfully deleted " + usernameA).build();
+            }
+            else
+            {
+                return Response.accepted("Error: can't delete " + username).build();
+            }
+        }
+        return Response.accepted("Error: can't delete " + username + " the user doesn't exists").build();
+    }
+    
+    @POST
+    @Path("/existUser")
+    @Consumes("application/json")
+    public Response existsUser(String username){
+        
+        Map<String, String> map = new Gson().fromJson(username, new TypeToken<Map<String, String>>() {}.getType());
+        String usernameA = map.get("username");
+        
+        if(usersSB.exists(usernameA)){
+           return Response.accepted("User: " + usernameA + " exists").build();
+        }
+        else{
+            return Response.accepted("User: " + usernameA + " does not exists").build();
+        }
+    }
+    
+    @POST
+    @Path("/updateUser")
+    @Consumes("application/json")
+    public Response updateUser(String json)
+    {
+        Gson gson = new Gson();
+        DTOUsers dto = gson.fromJson(json, DTOUsers.class);
+        if(usersSB.exists(dto.getUsername()))
+        {
+            usersSB.updateUser(dto);
+            return Response.accepted("The user " + dto.getUsername() + " was successfully updated").build();
+        }
+        else
+        {
+            return Response.accepted("The user " + dto.getUsername() + " doesn't exists").build();
+        }
+    }
     
 }

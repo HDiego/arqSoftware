@@ -23,6 +23,18 @@ public class SingletonSB implements SingletonSBLocal {
         
         userList = new ArrayList<DTOUsers>();
     }
+
+    @Override
+    public DTOUsers getUserByUsename(String username) {
+        for (int i = 0; i < userList.size(); i++) {
+            DTOUsers dto = new DTOUsers(username);
+            if(userList.get(i).equals(dto))
+            {
+                return userList.get(i);
+            }
+        }
+        return null;
+    }
     
     @Override
     public void AddUser(DTOUsers user) {
