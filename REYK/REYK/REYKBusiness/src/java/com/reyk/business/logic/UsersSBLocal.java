@@ -18,11 +18,14 @@ import javax.ejb.Local;
 @Local
 public interface UsersSBLocal {
  
-    void addUser(DTOUsers userDto);
+    void addUser(DTOUsers userDto) throws Exception;
     List<DTOUsers> getUsers();
     void updateUser(DTOUsers newUserDto);
     DTOUsers getUser(String username);
     boolean exists(String username);
     void deleteUser(String username);
+    
+    String login(String username, String password) throws Exception;
+    String logout(String token) throws Exception;
  
 }
