@@ -3,18 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.reyk.persistence.dataacces;
+package com.reyk.business.dtoTransformer;
 
+import com.reyk.dataTransferObjects.DTOUsers;
 import com.reyk.persistence.entities.Users;
 import javax.ejb.Local;
 
 /**
  *
- * @author MacAA
+ * @author diegorocca
  */
 @Local
-public interface PersistenceSBLocal {
-    
-    void addUser(Users u) throws Exception;
-    Users getUser(String username) throws Exception;
+public interface TransformUserSBLocal {
+    DTOUsers transformUserToDTOUsers(Users u);
+    Users transformDTOUserToUser(DTOUsers dtUser);
 }

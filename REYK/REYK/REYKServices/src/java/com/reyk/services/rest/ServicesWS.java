@@ -193,4 +193,15 @@ public class ServicesWS {
         }
     }
     
+    @POST
+    @Path("/getUser")
+    @Consumes("application/json")
+    public Response getUser(String username)
+    {
+        Gson gson = new Gson();
+        Map<String, String> map = gson.fromJson(username, new TypeToken<Map<String, String>>() {}.getType());
+        String usernameA = map.get("username");
+        DTOUsers aux = usersSB.getUser(usernameA);
+        return Response.accepted(gson.toJson(aux)).build();
+    }
 }
