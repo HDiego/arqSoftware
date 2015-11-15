@@ -23,7 +23,7 @@ public class SingletonSB implements SingletonSBLocal {
         
         userList = new ArrayList<DTOUsers>();
     }
-
+//Hola
     @Override
     public DTOUsers getUserByUsename(String username) {
         for (int i = 0; i < userList.size(); i++) {
