@@ -7,11 +7,13 @@ package com.reyk.business.logic;
 
 
 import com.reyk.dataTransferObjects.DTOUsers;
-import java.util.ArrayList;
+import com.reyk.persistence.dataacces.PersistenceSBLocal;
+import com.reyk.persistence.entities.Users;
+import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-
 /**
  *
  * @author MacAA
@@ -21,7 +23,11 @@ public class UsersSB implements UsersSBLocal {
 
     @EJB
     private SingletonSBLocal singletonSB;
-
+    
+    @EJB
+    private PersistenceSBLocal persistenceSB;
+    
+    
     @Override
     public void updateUser(DTOUsers newUserDto) {
         if(this.exists(newUserDto.getUsername()))
@@ -43,6 +49,8 @@ public class UsersSB implements UsersSBLocal {
 
     @Override
     public boolean exists(String username) {
+        if(singletonSB == null)
+            return true;
         
         if(singletonSB.getUserByUsename(username) != null)
         {
@@ -61,8 +69,15 @@ public class UsersSB implements UsersSBLocal {
     }
     
     @Override
-    public void addUser(DTOUsers userDto) {
+    public void addUser(DTOUsers userDto) throws Exception {
+       Users u = new Users();
+       u.setName(userDto.getName());
+       u.setSurname(userDto.getSurname());
+       u.setEmail(userDto.getEmail());
+       u.setUsername(userDto.getUsername());
+       u.setPassword(userDto.getPassword());
        
+       persistenceSB.addUser(u);
        singletonSB.AddUser(userDto);
     }
 
@@ -71,4 +86,33 @@ public class UsersSB implements UsersSBLocal {
        
         return singletonSB.getUsers();
     }
+
+    @Override
+    public String login(String username, String password) throws Exception{
+        String token = "";
+        try{
+            DTOUsers u = singletonSB.getUserByUsename(username); //cambiar aca luego a persistencia y entidad User
+            if(u.getPassword().trim() == password.trim()){  //definir equals en entidades
+                Calendar calendar = Calendar.getInstance();
+                token = UUID.randomUUID() + "#" + calendar.getTimeInMillis();
+             /*   Token t = new Token();
+                t.setToken(token);
+              //  t.setUser(u);
+                //agregar el token a la */
+            }
+            return token;
+        }
+        catch(Exception e){
+            throw new Exception("There was an error");
+        }
+        
+    }
+
+    @Override
+    public String logout(String token) throws Exception{
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    
+    
 }

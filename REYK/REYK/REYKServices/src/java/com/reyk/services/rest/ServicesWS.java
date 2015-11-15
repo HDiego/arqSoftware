@@ -72,15 +72,20 @@ public class ServicesWS {
     @POST
     @Path("/addUser")
     @Consumes("application/json")
-    public Response addUser(String json){
+    public Response addUser(String json) throws Exception{
 
         Gson gson = new Gson();
         DTOUsers dto = gson.fromJson(json, DTOUsers.class);
         if(dto != null && !dto.getUsername().isEmpty()){
             if(!usersSB.exists(dto.getUsername()))
             {
-                usersSB.addUser(dto);
-                return Response.accepted("Success").build();
+                try{
+                    usersSB.addUser(dto);
+                    return Response.accepted("Success").build();
+                }
+                catch(Exception e){
+                    throw new Exception("Tiro exception",e);
+                }
             }
             return Response.accepted("Username already exists.").build();
         }
