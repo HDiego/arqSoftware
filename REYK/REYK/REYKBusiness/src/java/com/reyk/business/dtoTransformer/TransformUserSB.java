@@ -27,6 +27,15 @@ public class TransformUserSB implements TransformUserSBLocal {
 
     @Override
     public Users transformDTOUserToUser(DTOUsers dtUser) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Users user = new Users();
+        
+        user.setName(dtUser.getName());
+        user.setSurname(dtUser.getSurname());
+        user.setEmail(dtUser.getEmail());
+        user.setUsername(dtUser.getUsername());
+        user.setPassword(dtUser.getPassword());
+        
+        return user;
+        
     }
 }

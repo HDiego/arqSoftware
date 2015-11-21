@@ -5,6 +5,7 @@
  */
 package com.reyk.persistence.entities;
 
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,18 +21,16 @@ import javax.validation.constraints.NotNull;
  * @author MacAA
  */
 
-/*@NamedQueries({
+@NamedQueries({
     @NamedQuery(name = "getUser",
-            query = "select u from Users where u.username = :userName")})
-*/
-
+            query = "select u from Users u where u.username = :userName")})
 @Entity
 @Table(name = "Users")
 public class Users {
     
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "ID")
+    @Column(name = "user_Id")
     private Long id;
     
     @NotNull
@@ -96,6 +95,22 @@ public class Users {
     public void setEmail(String email) {
         this.email = email;
     }
-    
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 47 * hash + Objects.hashCode(this.id);
+        return hash;
+    }
+
+   @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Users)) {
+            return false;
+        }
+        Users u = (Users) obj;
+        return u.id == this.id;
+    }
+     
     
 }

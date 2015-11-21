@@ -8,6 +8,7 @@ package com.reyk.business.logic;
 
 
 import com.reyk.dataTransferObjects.DTOUsers;
+import com.reyk.persistence.entities.Users;
 import java.util.List;
 import javax.ejb.Local;
 
@@ -20,12 +21,15 @@ public interface UsersSBLocal {
  
     void addUser(DTOUsers userDto) throws Exception;
     List<DTOUsers> getUsers();
-    void updateUser(DTOUsers newUserDto);
+    void updateUser(DTOUsers newUserDto) throws Exception;
     DTOUsers getUser(String username);
-    boolean exists(String username);
-    void deleteUser(String username);
+    boolean exists(String username) throws Exception;
+    void deleteUser(String username) throws Exception;
     
-    String login(String username, String password) throws Exception;
+    String login(String token, String username, String password) throws Exception;
     String logout(String token) throws Exception;
+    boolean isLoggedIn(String username, String token);
+    String authenticatorToken(String username) throws Exception;
+    
  
 }

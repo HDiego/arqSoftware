@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.PathParam;
 /**
  * REST Web Service
  *
@@ -68,6 +70,8 @@ public class ServicesWS {
     @Consumes("application/xml")
     public void putXml(String content) {
     }
+    
+    // <editor-fold defaultstate="collapsed" desc=" Users ">
     
     @POST
     @Path("/addUser")
@@ -138,58 +142,73 @@ public class ServicesWS {
     @POST
     @Path("/deleteUser")
     @Consumes("application/json")
-    public Response deleteUser(String username)
+    public Response deleteUser(String username) throws Exception
     {
-        Map<String, String> map = new Gson().fromJson(username, new TypeToken<Map<String, String>>() {}.getType());
-        String usernameA = map.get("username");
-        if(usersSB.exists(usernameA))
-        {
-            int count = usersSB.getUsers().size();
-            usersSB.deleteUser(usernameA);
-            int count2 = usersSB.getUsers().size();
-            if(count > count2)
+        try{
+            Map<String, String> map = new Gson().fromJson(username, new TypeToken<Map<String, String>>() {}.getType());
+            String usernameA = map.get("username");
+            if(usersSB.exists(usernameA))
             {
-                return Response.accepted("Successfully deleted " + usernameA).build();
+                int count = usersSB.getUsers().size();
+                usersSB.deleteUser(usernameA);
+                int count2 = usersSB.getUsers().size();
+                if(count > count2)
+                {
+                    return Response.accepted("Successfully deleted " + usernameA).build();
+                }
+                else
+                {
+                    return Response.accepted("Error: can't delete " + username).build();
+                }
             }
-            else
-            {
-                return Response.accepted("Error: can't delete " + username).build();
-            }
+            return Response.accepted("Error: can't delete " + username + " the user doesn't exists").build();
         }
-        return Response.accepted("Error: can't delete " + username + " the user doesn't exists").build();
+        catch(Exception e){
+            return Response.accepted("Unknown erro occured. Please try again.").build();
+        }
     }
     
     @POST
     @Path("/existUser")
     @Consumes("application/json")
-    public Response existsUser(String username){
-        
-        Map<String, String> map = new Gson().fromJson(username, new TypeToken<Map<String, String>>() {}.getType());
-        String usernameA = map.get("username");
-        
-        if(usersSB.exists(usernameA)){
-           return Response.accepted("User: " + usernameA + " exists").build();
+    public Response existsUser(String username) throws Exception{
+        try{
+            Map<String, String> map = new Gson().fromJson(username, new TypeToken<Map<String, String>>() {}.getType());
+            String usernameA = map.get("username");
+
+            if(usersSB.exists(usernameA)){
+               return Response.accepted("User: " + usernameA + " exists").build();
+            }
+            else{
+                return Response.accepted("User: " + usernameA + " does not exists").build();
+            }
         }
-        else{
-            return Response.accepted("User: " + usernameA + " does not exists").build();
+        catch(Exception e){
+            return Response.accepted("Unknown error occured").build();
         }
     }
     
     @POST
     @Path("/updateUser")
     @Consumes("application/json")
-    public Response updateUser(String json)
+    public Response updateUser(String json) throws Exception
     {
-        Gson gson = new Gson();
-        DTOUsers dto = gson.fromJson(json, DTOUsers.class);
-        if(usersSB.exists(dto.getUsername()))
-        {
-            usersSB.updateUser(dto);
-            return Response.accepted("The user " + dto.getUsername() + " was successfully updated").build();
+        try{
+            Gson gson = new Gson();
+            DTOUsers dto = gson.fromJson(json, DTOUsers.class);
+            if(usersSB.exists(dto.getUsername()))
+            {
+                usersSB.updateUser(dto);
+                return Response.accepted("The user " + dto.getUsername() + " was successfully updated").build();
+            }
+            else
+            {
+                return Response.accepted("The user " + dto.getUsername() + " doesn't exists").build();
+            }
         }
-        else
+        catch(Exception e)
         {
-            return Response.accepted("The user " + dto.getUsername() + " doesn't exists").build();
+            return Response.accepted("Unknown error occured. Please try again.").build();
         }
     }
     
@@ -204,4 +223,48 @@ public class ServicesWS {
         DTOUsers aux = usersSB.getUser(usernameA);
         return Response.accepted(gson.toJson(aux)).build();
     }
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Login ">
+    @POST
+    @Path("/login")
+    @Consumes("application/json")
+    public Response login(String login) throws Exception{
+        Gson gson = new Gson();
+     
+        Map<String, String> mapUser = gson.fromJson(login, new TypeToken<Map<String, String>>() {}.getType());
+      
+        String usernameA = mapUser.get("username");
+        String passwordA = mapUser.get("password");
+        String token = usersSB.authenticatorToken(usernameA);
+        
+        String result = usersSB.login(token,usernameA, passwordA);
+        
+        if(result != "")
+            return Response.accepted(result).build();  //Retorna el token de seguridad
+        else{
+            return Response.accepted("Username and password doesn't match: " + usernameA +  " = " + passwordA ).build();
+        }
+    }
+    
+    @DELETE
+    @Path("/{securityToken}/logout}")
+    public Response logout(@PathParam("securityToken") String token) throws Exception{
+       // Gson gson = new Gson();
+       // Map<String, String> mapToken = gson.fromJson(token, new TypeToken<Map<String, String>>() {}.getType());
+        try{
+            String result = usersSB.logout(token);
+            return Response.accepted(result).build();
+        }
+        catch(Exception e){
+            throw new Exception("Error", e);
+        }
+        
+        
+    }
+    
+    
+    
+    //</editor-fold>
 }
