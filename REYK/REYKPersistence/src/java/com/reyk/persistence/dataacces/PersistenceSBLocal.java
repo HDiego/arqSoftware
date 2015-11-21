@@ -38,4 +38,8 @@ public interface PersistenceSBLocal {
     void deleteBooking(Booking booking) throws PersistenceException, Exception;
     
     void addBook(Books book) throws Exception;
+    List<Books> getBooksByAuthor(String author) throws Exception;
+    List<Books> getBooksByTitle(String title) throws Exception;
+    Books getBook(String isbn) throws Exception;
+    List<Books> getAllBooks() throws Exception; 
 }

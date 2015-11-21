@@ -5,7 +5,8 @@
  */
 package com.reyk.business.logic;
 
-import com.reyk.business.dtoTransformer.TransformUserSBLocal;
+import com.reyk.business.dtoTransformer.TransformDtoToEntityLocal;
+import com.reyk.business.dtoTransformer.TransformEntityToDTOLocal;
 import com.reyk.dataTransferObjects.DTOUsers;
 import com.reyk.persistence.dataacces.PersistenceSBLocal;
 import com.reyk.persistence.entities.Token;
@@ -30,7 +31,11 @@ public class UsersSB implements UsersSBLocal {
     private PersistenceSBLocal persistenceSB;
 
     @EJB
-    private TransformUserSBLocal transformUserSB;
+    private TransformEntityToDTOLocal transformEntityToDtoSB;
+    
+    @EJB
+    private TransformDtoToEntityLocal transformDtoToEntitySB;
+    
     
     //<editor-fold defaultstate="collapsed" desc="Users">
     
@@ -39,7 +44,7 @@ public class UsersSB implements UsersSBLocal {
     {
         if (this.exists(newUserDto.getUsername())) 
         {
-            Users _user = transformUserSB.transformDTOUserToUser(newUserDto);
+            Users _user = transformDtoToEntitySB.transformDTOUserToUser(newUserDto);
             _user.setId(this.getUser(_user.getUsername()).getId());
             
             persistenceSB.modifyUser(_user);
@@ -50,7 +55,7 @@ public class UsersSB implements UsersSBLocal {
     public DTOUsers getUser(String username) {
         try {
             Users u = persistenceSB.getUser(username);
-            DTOUsers dto = transformUserSB.transformUserToDTOUsers(u);
+            DTOUsers dto = transformEntityToDtoSB.transformUserToDTOUsers(u);
             return dto;
         } catch (Exception e) {
            
@@ -87,7 +92,7 @@ public class UsersSB implements UsersSBLocal {
         u.setPassword(userDto.getPassword());
 
         persistenceSB.addUser(u);
-        singletonSB.AddUser(userDto);
+        
     }
 
     @Override
@@ -98,6 +103,8 @@ public class UsersSB implements UsersSBLocal {
 
     //</editor-fold>
     
+    //<editor-fold defaultstate="collapsed" desc="Login/Logout">
+   
     @Override
     public String login(String token, String username, String password) throws Exception {
       
@@ -191,6 +198,8 @@ public class UsersSB implements UsersSBLocal {
         
         
     }
+    //</editor-fold>
+    
     
 }
 

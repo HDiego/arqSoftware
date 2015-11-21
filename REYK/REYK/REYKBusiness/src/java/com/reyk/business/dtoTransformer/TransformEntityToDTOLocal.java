@@ -5,7 +5,11 @@
  */
 package com.reyk.business.dtoTransformer;
 
+import com.reyk.dataTransferObjects.DTOBookings;
+import com.reyk.dataTransferObjects.DTOBooks;
 import com.reyk.dataTransferObjects.DTOUsers;
+import com.reyk.persistence.entities.Booking;
+import com.reyk.persistence.entities.Books;
 import com.reyk.persistence.entities.Users;
 import javax.ejb.Local;
 
@@ -14,7 +18,9 @@ import javax.ejb.Local;
  * @author diegorocca
  */
 @Local
-public interface TransformUserSBLocal {
+public interface TransformEntityToDTOLocal {
     DTOUsers transformUserToDTOUsers(Users u);
-    Users transformDTOUserToUser(DTOUsers dtUser);
+    DTOBooks transformBookToDTOBooks(Books book);
+    DTOBookings transformBookingToDTOBookings(Booking booking);
+    
 }

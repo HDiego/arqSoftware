@@ -10,6 +10,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
@@ -17,6 +19,12 @@ import javax.validation.constraints.NotNull;
  *
  * @author MacAA
  */
+@NamedQueries({
+    @NamedQuery(name = "getBook",
+            query = "select b from Books b where b.isbn = :isbn"),
+    @NamedQuery(name = "getBooksByAuthor", query = "select b from Books b where b.author = :author"),
+    @NamedQuery(name = "getBooksByTitle", query = "select b from Books b where b.title = :title"),
+    @NamedQuery(name = "getAllBooks", query = "select b from Books b")})
 
 @Entity
 @Table(name = "Books")

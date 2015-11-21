@@ -20,12 +20,13 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.core.Response;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.reyk.business.logic.BooksSBLocal;
+import com.reyk.dataTransferObjects.DTOBooks;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.PathParam;
+import javax.json.JsonException;
 /**
  * REST Web Service
  *
@@ -41,7 +42,8 @@ public class ServicesWS {
     @EJB
     UsersSBLocal usersSB;
     
-   
+    @EJB
+    BooksSBLocal booksSB;
 
     /**
      * Creates a new instance of ServicesWS
@@ -248,21 +250,147 @@ public class ServicesWS {
         }
     }
     
-    @DELETE
-    @Path("/{securityToken}/logout}")
-    public Response logout(@PathParam("securityToken") String token) throws Exception{
-       // Gson gson = new Gson();
-       // Map<String, String> mapToken = gson.fromJson(token, new TypeToken<Map<String, String>>() {}.getType());
+    @POST
+    @Path("/logout")
+    @Consumes("application/json")
+    public Response logout(String token) throws Exception{
         try{
-            String result = usersSB.logout(token);
+            Gson gson = new Gson();
+            Map<String, String> mapToken = gson.fromJson(token, new TypeToken<Map<String, String>>() {}.getType());
+            String _token = mapToken.get("token");
+            String result = usersSB.logout(_token);
             return Response.accepted(result).build();
         }
         catch(Exception e){
             throw new Exception("Error", e);
-        }
+        }  
+    }
+    
+    
+    
+    //</editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Books ">
+    @POST
+    @Path("/addBook")
+    @Consumes("application/json")
+    public Response addBook(String json) throws Exception{
+
+        Gson gson = new Gson();
+        DTOBooks dto = gson.fromJson(json, DTOBooks.class);
         
+        if(dto != null && !dto.getIsbn().isEmpty()){
+            if(!booksSB.existsBook(dto.getIsbn()))
+            {
+                try{
+                    booksSB.addBook(dto);
+
+                    return Response.accepted("The book: " + dto.getTitle() + " has been added.").build();
+                }
+                catch(Exception e){
+                    throw new Exception("Tiro exception",e);
+                }
+            }
+            return Response.accepted("Book already exists.").build();
+        }
+        else{
+            return Response.accepted("The book must have and ISBN.").build();
+        }
+    }
+    
+    @POST
+    @Path("/getBooksByAuthor")
+    @Consumes("application/json")
+    public Response getBookByAuthor(String json) throws Exception{
+       try{
+        
+        Gson gson = new Gson();
+        Map<String, String> map = gson.fromJson(json, new TypeToken<Map<String, String>>() {}.getType());
+        String author = map.get("author");
+        List<DTOBooks> lstBooks = booksSB.getBooksByAuthor(author);
+        
+        return Response.accepted(gson.toJson(lstBooks)).build();
+        
+       }
+       catch(Exception e){
+           return Response.accepted("Error getBookByAuthor en Service WS").build();
+       }
         
     }
+    
+    @POST
+    @Path("/getBooksByTitle")
+    @Consumes("application/json")
+    public Response getBookByTitle(String json) throws Exception{
+       try{
+        
+        Gson gson = new Gson();
+        Map<String, String> map = gson.fromJson(json, new TypeToken<Map<String, String>>() {}.getType());
+        String title = map.get("title");
+        if(title != ""){
+            List<DTOBooks> lstBooks = booksSB.getBooksByTitle(title);
+
+            return Response.accepted(gson.toJson(lstBooks)).build();
+        }
+        else{
+            return Response.accepted("You must enter a title").build();
+        }
+        
+       }
+       catch(JsonException je){
+           return Response.accepted("Invalid Json format").build();
+       }
+       catch(Exception e){
+           return Response.accepted("Error getBookByTitle en Service WS").build();
+       }
+        
+    }
+    
+    @POST
+    @Path("/getBook")
+    @Consumes("application/json")
+    public Response getBook(String json) throws Exception{
+       try{
+        
+        Gson gson = new Gson();
+        Map<String, String> map = gson.fromJson(json, new TypeToken<Map<String, String>>() {}.getType());
+        String isbn = map.get("isbn");
+        DTOBooks book = booksSB.getBook(isbn);
+        if(book != null)
+            return Response.accepted(gson.toJson(book)).build();
+        
+        return Response.accepted("There are no books with ISBN " +isbn).build();
+        
+       }
+       catch(Exception e){
+           return Response.accepted("Error getBook en Service WS").build();
+       }
+        
+    }
+    
+    @GET
+    @Path("/getAllBooks")
+    @Consumes("application/json")
+    public Response getAllBooks() throws Exception{
+        try{
+            Gson gson = new Gson();
+            
+            List<DTOBooks> book = booksSB.getAllBooks();
+            if(book != null)
+                return Response.accepted(gson.toJson(book)).build();
+            else{
+                return Response.accepted("There are no books").build();
+            }
+            
+        }
+        catch(Exception e){
+            return Response.accepted("Error from getAllBooks WS").build();
+        }
+    }
+    
+    
+    
+    
     
     
     

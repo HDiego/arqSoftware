@@ -56,7 +56,7 @@ public class PersistenceSB implements PersistenceSBLocal {
             return (Users) em.createNamedQuery("getUser").setParameter("userName", username).getSingleResult();
           
         } catch (Exception e) {
-            throw new EJBException("There was no match for " + username, e);
+            return null;
         }
     }
     
@@ -118,6 +118,7 @@ public class PersistenceSB implements PersistenceSBLocal {
    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
    public void deleteToken(Token t) throws Exception{
            // if(t.getId() != null)
+                t = em.merge(t);
                 em.remove(t);
        }
    
@@ -223,6 +224,49 @@ public class PersistenceSB implements PersistenceSBLocal {
         }
     }
     
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public List<Books> getBooksByAuthor(String author) throws Exception{
+        try{
+            return (List<Books>) em.createNamedQuery("getBooksByAuthor").setParameter("author", author).getResultList();
+        }
+        catch(Exception e){
+            return null;
+        }
+    }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public List<Books> getBooksByTitle(String title) throws Exception{
+        try{
+            return (List<Books>) em.createNamedQuery("getBooksByTitle").setParameter("title", title).getResultList();
+        }
+        catch(Exception e){
+            return null;
+        }
+    }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Books getBook(String isbn) throws Exception{
+        try{
+            return (Books) em.createNamedQuery("getBook").setParameter("isbn", isbn).getSingleResult();
+        }
+        catch(Exception e){
+            return null;
+        }
+    }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public List<Books> getAllBooks(){
+        try{
+            return em.createNamedQuery("getAllBooks").getResultList();
+        }
+        catch(Exception e){
+            return null;
+        }
+    }
     
     //</editor-fold>
     
