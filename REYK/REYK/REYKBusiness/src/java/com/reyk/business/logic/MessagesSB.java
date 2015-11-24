@@ -55,7 +55,7 @@ public class MessagesSB implements MessagesSBLocal {
     public void messageSeen(DTOMessages message) throws Exception {
         Messages mes = transformDtoToEntitySB.transformDTOMessagesToMessages(message);
         mes.getUser().setId(persistenceSB.getUser(mes.getUser().getUsername()).getId());
-        //mes.setId(message.getId());
+        mes.setId(message.getId());
         mes.setSeen(true);
         persistenceSB.messageSeen(mes);
     }

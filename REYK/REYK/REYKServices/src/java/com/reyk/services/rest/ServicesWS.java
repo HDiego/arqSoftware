@@ -650,7 +650,6 @@ public class ServicesWS {
             return Response.accepted("Error from getMessages WS").build();
         }
     }
-    
-//</editor-fold>
 
+//</editor-fold>
 }
