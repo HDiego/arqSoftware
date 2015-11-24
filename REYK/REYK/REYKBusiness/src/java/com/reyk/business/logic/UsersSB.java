@@ -11,11 +11,16 @@ import com.reyk.dataTransferObjects.DTOUsers;
 import com.reyk.persistence.dataacces.PersistenceSBLocal;
 import com.reyk.persistence.entities.Token;
 import com.reyk.persistence.entities.Users;
+import com.reyk.socialmedia.implementations.TwitterSB;
+import com.reyk.socialmedia.interfaces.SocialMediaSBLocal;
+
 import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 /**
  *
@@ -35,6 +40,9 @@ public class UsersSB implements UsersSBLocal {
     
     @EJB
     private TransformDtoToEntityLocal transformDtoToEntitySB;
+    
+    @EJB(beanName = "TwitterSB")//Default session bean name for Twitter4j
+    private SocialMediaSBLocal socialMedia;
     
     
     //<editor-fold defaultstate="collapsed" desc="Users">
@@ -146,7 +154,7 @@ public class UsersSB implements UsersSBLocal {
     public boolean isLoggedIn(String username, String token){
         try{
             Token tokenT = persistenceSB.getToken(token);
-            return tokenT.getUser().getUsername() == username;
+            return tokenT.getUser().getUsername().equals(username) ;  
         }
         catch(Exception e){
             return false;
@@ -200,7 +208,57 @@ public class UsersSB implements UsersSBLocal {
     }
     //</editor-fold>
     
+    //<editor-fold defaultstate="collapsed" desc="Social Media for Twitter">
     
+    @Override
+    public String connectToSocialMedia(String _socialMedia, String username) {
+        try {
+            //Looking up for the specific SB.
+            String jindiName = SocialMediaSBLocal.class.getName();
+            String jindiName2 = TwitterSB.class.getName();
+            socialMedia = (SocialMediaSBLocal) InitialContext.doLookup("java:global/REYK/REYKSocialMedia/" + _socialMedia + "SB");
+                    
+                    
+            //"java:global/REYK/REYKSocialMedia/" + _socialMedia + "SB"
+        } catch (NamingException namingEx) {
+            return "That social media is not available in REYK.";
+        }
+        return socialMedia.connectToSocialMedia(username);
+    }
+    
+    @Override
+    public String disconnectFromSocialMedia(String _socialMedia, String username) {
+        
+        try {
+            //Looking up for the specific SB.
+            socialMedia = (SocialMediaSBLocal) InitialContext.doLookup("java:global/REYK/REYKSocialMedia/" + _socialMedia + "SB");
+        } catch (NamingException namingEx) {
+            return "Error connecting to " + _socialMedia;
+        }
+        return socialMedia.disconnectFromSocialMedia(username);
+        
+    }
+
+    @Override
+    public void addPin(String pin, String username){
+        socialMedia.addPin(pin, username);
+    }
+
+    @Override
+    public void postComment(String post, String username, 
+            String _socialMedia){
+        try {
+            socialMedia = (SocialMediaSBLocal) InitialContext.doLookup("java:global/REYK/REYKSocialMedia/" + _socialMedia + "SB");
+            socialMedia.postComment(username, post);
+        } catch (NamingException ex) {
+           //No hay nada que podamos hacer para corregirlo.
+        }
+        
+    }
+    
+    //</editor-fold>
+
+  
 }
 
 

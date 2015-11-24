@@ -31,5 +31,8 @@ public interface UsersSBLocal {
     boolean isLoggedIn(String username, String token);
     String authenticatorToken(String username) throws Exception;
     
- 
+    String connectToSocialMedia(String _socialMedia, String username);
+    String disconnectFromSocialMedia(String _socialMedia, String username);
+    void addPin(String pin, String username);
+    void postComment(String post, String username, String _socialMedia);
 }

@@ -19,6 +19,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
+import javax.persistence.TemporalType;
 
 /**
  *
@@ -206,6 +207,39 @@ public class PersistenceSB implements PersistenceSBLocal {
             em.remove(booking);
         } else {
             throw new PersistenceException("The user couldn't be deleted");
+        }
+    }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public List<Booking> getBookingsByUser(Users u) throws PersistenceException{
+        try{
+            if(u.getId() != null){
+                return (List<Booking>) em.createNamedQuery("getBookingsByUser").setParameter("idUsers", u).getResultList();
+                                                                                             
+            }
+            else{
+                return null;
+            }
+        }
+        catch(PersistenceException pEx){
+            String aux = pEx.getMessage();
+            return null;
+        }
+         
+    }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Booking getOneBooking(Booking booking) throws PersistenceException{
+        try{
+            return (Booking) em.createNamedQuery("getOneBooking").
+                    setParameter("idUser", booking.getUser()).
+                    setParameter("dateInit", booking.getInitialDate(),TemporalType.DATE).
+                    getSingleResult();
+        }
+        catch(PersistenceException pEx){
+            return null;
         }
     }
     

@@ -13,6 +13,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
@@ -21,6 +23,12 @@ import javax.validation.constraints.NotNull;
  *
  * @author MacAA
  */
+
+@NamedQueries({
+    @NamedQuery(name = "getBookingsByUser",
+            query = "select b from Booking b where b.user = :idUsers"),
+    @NamedQuery(name = "getOneBooking",
+            query = "select b from Booking b where b.user = :idUser and b.initialDate = :dateInit")})
 
 @Entity
 @Table(name = "Booking")
@@ -87,5 +95,13 @@ public class Booking {
         this.finalDate = finalDate;
     }
     
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Booking)) {
+            return false;
+        }
+        Booking b = (Booking) obj;
+        return b.id == this.id;
+    }
     
 }

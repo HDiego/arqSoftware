@@ -36,6 +36,8 @@ public interface PersistenceSBLocal {
     void addBooking(Booking booking) throws Exception;
     void modifyBooking(Booking booking) throws PersistenceException, Exception;
     void deleteBooking(Booking booking) throws PersistenceException, Exception;
+    List<Booking> getBookingsByUser(Users u) throws PersistenceException;
+    Booking getOneBooking(Booking booking) throws PersistenceException;
     
     void addBook(Books book) throws Exception;
     List<Books> getBooksByAuthor(String author) throws Exception;
