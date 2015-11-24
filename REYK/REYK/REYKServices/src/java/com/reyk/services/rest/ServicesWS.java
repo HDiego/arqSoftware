@@ -624,6 +624,9 @@ public class ServicesWS {
             return Response.accepted(e.getMessage()).build();
         }
     }
+    
+//</editor-fold>    
+    
 // <editor-fold defaultstate="collapsed" desc="Messages">
 
     @POST
