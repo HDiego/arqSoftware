@@ -7,9 +7,11 @@ package com.reyk.business.dtoTransformer;
 
 import com.reyk.dataTransferObjects.DTOBookings;
 import com.reyk.dataTransferObjects.DTOBooks;
+import com.reyk.dataTransferObjects.DTOMessages;
 import com.reyk.dataTransferObjects.DTOUsers;
 import com.reyk.persistence.entities.Booking;
 import com.reyk.persistence.entities.Books;
+import com.reyk.persistence.entities.Messages;
 import com.reyk.persistence.entities.Users;
 import javax.ejb.Stateless;
 
@@ -29,7 +31,7 @@ public class TransformDtoToEntity implements TransformDtoToEntityLocal {
         user.setEmail(dtoUser.getEmail());
         user.setUsername(dtoUser.getUsername());
         user.setPassword(dtoUser.getPassword());
-        
+        user.setSuscribed(dtoUser.isSuscribed());
         return user;
         
     }
@@ -60,4 +62,17 @@ public class TransformDtoToEntity implements TransformDtoToEntityLocal {
         
         return booking;
     }
+
+    @Override
+    public Messages transformDTOMessagesToMessages(DTOMessages dtoMes) {
+        Messages message = new Messages();
+        message.setMessage(dtoMes.getMsj());
+        message.setSeen(dtoMes.isSeen());
+        Users u = this.transformDTOUserToUser(dtoMes.getUser());
+        u.setId(dtoMes.getUser().getId());
+        message.setUser(u);
+        return message;
+    }
+    
+    
 }

@@ -67,7 +67,8 @@ public class UsersSB implements UsersSBLocal {
     public boolean exists(String username) throws Exception {
         
         try{
-            return persistenceSB.getUser(username) != null;
+            boolean exists = persistenceSB.getUser(username) != null;
+            return exists;
         }
         catch(Exception e){
             throw new Exception("The user doesn't exists");
@@ -90,15 +91,22 @@ public class UsersSB implements UsersSBLocal {
         u.setEmail(userDto.getEmail());
         u.setUsername(userDto.getUsername());
         u.setPassword(userDto.getPassword());
-
+        u.setSuscribed(userDto.isSuscribed());
         persistenceSB.addUser(u);
         
     }
 
     @Override
     public List<DTOUsers> getUsers() {
-
-        return singletonSB.getUsers();
+        try
+        {
+            List<DTOUsers> listDTO = transformEntityToDtoSB.transformListUserToListDTO(persistenceSB.getUsers());
+            return listDTO;
+        }
+        catch(Exception e)
+        {
+            return null;
+        }
     }
 
     //</editor-fold>

@@ -7,6 +7,7 @@ package com.reyk.persistence.dataacces;
 
 import com.reyk.persistence.entities.Booking;
 import com.reyk.persistence.entities.Books;
+import com.reyk.persistence.entities.Messages;
 import com.reyk.persistence.entities.Token;
 import com.reyk.persistence.entities.Users;
 import java.util.List;
@@ -24,6 +25,7 @@ public interface PersistenceSBLocal {
     void addUser(Users u) throws Exception;
     Users getUser(String username) throws Exception;
     Users getUser(Long id) throws Exception;
+    List<Users> getUsers() throws Exception;
     void modifyUser(Users u) throws PersistenceException, Exception;
     void deleteUser(Users user) throws PersistenceException, Exception; 
     
@@ -42,4 +44,9 @@ public interface PersistenceSBLocal {
     List<Books> getBooksByTitle(String title) throws Exception;
     Books getBook(String isbn) throws Exception;
     List<Books> getAllBooks() throws Exception; 
+    
+    void addMessage(Messages message) throws Exception;
+    List<Messages> getMessage(String user) throws Exception;
+    List<Messages> getAllMessage() throws Exception;
+    void messageSeen(Messages message) throws Exception;
 }
