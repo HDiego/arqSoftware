@@ -23,7 +23,9 @@ import javax.validation.constraints.NotNull;
 
 @NamedQueries({
     @NamedQuery(name = "getUser",
-            query = "select u from Users u where u.username = :userName")})
+            query = "select u from Users u where u.username = :user"),
+    @NamedQuery(name = "getAllUsers",
+            query = "select u from Users u")})
 @Entity
 @Table(name = "Users")
 public class Users {
@@ -47,6 +49,8 @@ public class Users {
     
     @NotNull
     private String email;
+    
+    private boolean suscribed;
 
     public Long getId() {
         return id;
@@ -94,6 +98,14 @@ public class Users {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isSuscribed() {
+        return suscribed;
+    }
+
+    public void setSuscribed(boolean suscribed) {
+        this.suscribed = suscribed;
     }
 
     @Override

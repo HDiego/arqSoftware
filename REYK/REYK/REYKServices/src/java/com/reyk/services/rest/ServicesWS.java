@@ -24,7 +24,11 @@ import com.google.gson.reflect.TypeToken;
 import com.reyk.business.logic.BookingsSBLocal;
 import com.reyk.business.logic.BooksSBLocal;
 import com.reyk.dataTransferObjects.DTOBookings;
+import com.reyk.business.logic.MessagesSBLocal;
 import com.reyk.dataTransferObjects.DTOBooks;
+import com.reyk.dataTransferObjects.DTOMessages;
+import com.reyk.services.jms.Publisher;
+import com.reyk.services.jms.Subscriber;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -32,7 +36,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.ejb.EJBException;
+import javax.jms.Session;
+import javax.jms.TopicConnection;
+import javax.jms.TopicConnectionFactory;
+import javax.jms.TopicSession;
 import javax.json.JsonException;
+import javax.naming.InitialContext;
 
 /**
  * REST Web Service
@@ -54,6 +63,9 @@ public class ServicesWS {
 
     @EJB
     BookingsSBLocal bookingsSB;
+
+    @EJB
+    MessagesSBLocal messagesSB;
 
     /**
      * Creates a new instance of ServicesWS
@@ -95,7 +107,9 @@ public class ServicesWS {
         Gson gson = new Gson();
         DTOUsers dto = gson.fromJson(json, DTOUsers.class);
         if (dto != null && !dto.getUsername().isEmpty()) {
-            if (!usersSB.exists(dto.getUsername())) {
+
+            if (usersSB.exists(dto.getUsername()) == false) {
+
                 try {
                     usersSB.addUser(dto);
                     return Response.accepted("Success").build();
@@ -379,7 +393,31 @@ public class ServicesWS {
             if (!booksSB.existsBook(dto.getIsbn())) {
                 try {
                     booksSB.addBook(dto);
+                    List<DTOUsers> listUser = usersSB.getUsers();
+                    InitialContext ic = new InitialContext();
+                    TopicConnectionFactory connectionFactory = (TopicConnectionFactory) ic.lookup("ConnectionFactory");
+                    TopicConnection connection = connectionFactory.createTopicConnection();
+                    javax.jms.Topic topic = (javax.jms.Topic) ic.lookup("jms/Topic");
 
+                    TopicSession session = connection.createTopicSession(false, Session.AUTO_ACKNOWLEDGE);
+                    Publisher publisher = new Publisher(topic, session, dto.getTitle());
+                    for (int i = 0; i < listUser.size(); i++) {
+                        if (listUser.get(i).isSuscribed()) {
+                            Subscriber subscriber = new Subscriber(topic, session, listUser.get(i).getName(), dto.getTitle());
+                            String msj = "El nuevo libro publicado es: " + dto.getTitle();
+                            DTOMessages mes = new DTOMessages(listUser.get(i), false, msj);
+                            messagesSB.addMessages(mes);
+                        }
+                    }
+                    connection.start();
+
+                    Thread thread = new Thread(publisher);
+                    thread.start();
+                    thread.join();
+
+                    publisher.close();
+                    connection.close();
+                    ic.close();
                     return Response.accepted("The book: " + dto.getTitle() + " has been added.").build();
                 } catch (Exception e) {
                     throw new Exception("Tiro exception", e);
@@ -561,7 +599,8 @@ public class ServicesWS {
     @POST
     @Path("/getBookingsByUser")
     @Consumes("application/json")
-    public Response getBookingsByUser(String json) {
+    public Response getBookingsByUser(String json
+    ) {
         try {
             Gson gson = new Gson();
             Map<String, String> map = gson.fromJson(json, new TypeToken<Map<String, String>>() {
@@ -581,11 +620,37 @@ public class ServicesWS {
 
         } catch (JsonSyntaxException jEx) {
             return Response.accepted("Malformed json.").build();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             return Response.accepted(e.getMessage()).build();
         }
     }
+// <editor-fold defaultstate="collapsed" desc="Messages">
 
-    //</editor-fold>
+    @POST
+    @Path("/getMessages")
+    @Consumes("application/json")
+
+    public Response getMessages(String json) throws Exception {
+        try {
+            Gson gson = new Gson();
+            Map<String, String> map = gson.fromJson(json, new TypeToken<Map<String, String>>() {
+            }.getType());
+            String username = map.get("username");
+            List<DTOMessages> message = messagesSB.getMessages(username);
+            if (message != null && message.size() > 0) {
+                for (int i = 0; i < message.size(); i++) {
+                    messagesSB.messageSeen(message.get(i));
+                    message.get(i).setId(null);
+                }
+                return Response.accepted(gson.toJson(message)).build();
+            } else {
+                return Response.accepted("There are no new messages").build();
+            }
+        } catch (Exception e) {
+            return Response.accepted("Error from getMessages WS").build();
+        }
+    }
+    
+//</editor-fold>
+
 }

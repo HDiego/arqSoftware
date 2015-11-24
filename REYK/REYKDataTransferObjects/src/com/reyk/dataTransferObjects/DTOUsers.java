@@ -19,13 +19,15 @@ public class DTOUsers {
     private String username;
     private String password;
     private String email;
+    private boolean suscribed;
 
-    public DTOUsers(String name, String surname, String username, String password, String email) {
+    public DTOUsers(String name, String surname, String username, String password, String email, boolean suscribed) {
         this.name = name;
         this.surname = surname;
         this.username = username;
         this.password = password;
         this.email = email;
+        this.suscribed = suscribed;
     }
     
     public DTOUsers(String username)
@@ -82,6 +84,14 @@ public class DTOUsers {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isSuscribed() {
+        return suscribed;
+    }
+
+    public void setSuscribed(boolean suscribed) {
+        this.suscribed = suscribed;
     }
 
     @Override
