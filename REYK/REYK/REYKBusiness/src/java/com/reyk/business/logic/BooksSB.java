@@ -7,12 +7,14 @@ package com.reyk.business.logic;
 
 import com.reyk.business.dtoTransformer.TransformDtoToEntityLocal;
 import com.reyk.business.dtoTransformer.TransformEntityToDTOLocal;
+import com.reyk.business.exception.EntityNotExistException;
 import com.reyk.dataTransferObjects.DTOBooks;
 import com.reyk.persistence.dataacces.PersistenceSBLocal;
 import com.reyk.persistence.entities.Books;
 import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 
 /**
@@ -27,100 +29,93 @@ public class BooksSB implements BooksSBLocal {
 
     @EJB
     private TransformEntityToDTOLocal transformEntityToDtoSB;
-    
+
     @EJB
     private TransformDtoToEntityLocal transformDtoToEntitySB;
-    
+
     @Override
-    public void addBook(DTOBooks dtoBook) throws Exception{
-        
-        try{
+    public void addBook(DTOBooks dtoBook) throws Exception {
+        try {
             Books book = transformDtoToEntitySB.transformDTOBooksToBooks(dtoBook);
-            
             persistenceSB.addBook(book);
-            
-        }
-        catch(Exception e){
-            throw new Exception("The book couldn't be added");
+        } catch (Exception e) {
+            throw new EntityNotExistException(e.getMessage(), e);
         }
     }
-    
+
     @Override
-    public List<DTOBooks> getBooksByAuthor(String author) throws Exception{
-        try{
+    public List<DTOBooks> getBooksByAuthor(String author) throws Exception {
+        try {
             List<Books> lstBooks = persistenceSB.getBooksByAuthor(author);
-            List<DTOBooks> lstDTO = new ArrayList<DTOBooks>(); 
-            for (int i = 0; i < lstBooks.size(); i++) {
-                DTOBooks dto = this.transformEntityToDtoSB.transformBookToDTOBooks(lstBooks.get(i));
-                lstDTO.add(dto);
-            }
-            
-            return lstDTO;
-            
-        }
-        catch(Exception e){
-            throw new Exception("getBooksByAuthor", e);
-        }
-    }
-    
-    @Override
-    public List<DTOBooks> getBooksByTitle(String title) throws Exception{
-        try{
-            List<Books> lstBooks = persistenceSB.getBooksByTitle(title);
             List<DTOBooks> lstDTO = new ArrayList<DTOBooks>();
-            
             for (int i = 0; i < lstBooks.size(); i++) {
                 DTOBooks dto = this.transformEntityToDtoSB.transformBookToDTOBooks(lstBooks.get(i));
                 lstDTO.add(dto);
             }
-            
             return lstDTO;
-        }
-        catch(Exception e){
-            throw new Exception("getBooksByTitle",e);
+        } catch (EJBException e) {
+            return new ArrayList<DTOBooks>();
+        } catch (Exception e) {
+            throw new EntityNotExistException(e.getMessage(), e);
         }
     }
-    
+
     @Override
-    public DTOBooks getBook(String isbn) throws Exception{
-        try{
+    public List<DTOBooks> getBooksByGenre(String genre) throws Exception {
+        try {
+            List<Books> lstBooks = persistenceSB.getBooksByGenre(genre);
+            List<DTOBooks> lstDTO = new ArrayList<DTOBooks>();
+            for (int i = 0; i < lstBooks.size(); i++) {
+                DTOBooks dto = this.transformEntityToDtoSB.transformBookToDTOBooks(lstBooks.get(i));
+                lstDTO.add(dto);
+            }
+            return lstDTO;
+        } catch (EJBException e) {
+            return new ArrayList<DTOBooks>();
+        } catch (Exception e) {
+            throw new EntityNotExistException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public DTOBooks getBook(String isbn) throws Exception {
+        try {
             Books book = persistenceSB.getBook(isbn);
-            if(book != null){
-                return this.transformEntityToDtoSB.transformBookToDTOBooks(book);
-            }
-            else{
-                return null;
-            }
-        }
-        catch(Exception e){
-            throw new Exception("getBook",e);
+            DTOBooks dtoBook = this.transformEntityToDtoSB.transformBookToDTOBooks(book);
+            return dtoBook;
+        } catch (EJBException e) {
+            throw new EntityNotExistException(e.getMessage(), e);
+        } catch (Exception e) {
+            throw new EntityNotExistException(e.getMessage(), e);
         }
     }
-    
+
     @Override
-    public boolean existsBook(String isbn) throws Exception{
-        try{
-           return persistenceSB.getBook(isbn) != null; 
-        }
-        catch(Exception e){
-            throw new Exception("The ISBN book " + isbn + "doesn't exists");
+    public boolean existsBook(String isbn) throws Exception {
+        try {
+            boolean exist = persistenceSB.getBook(isbn) != null;
+            return exist;
+        } catch (EJBException e) {
+            return false;
+        } catch (Exception e) {
+            throw new EntityNotExistException(e.getMessage(), e);
         }
     }
-    
+
     @Override
-    public List<DTOBooks> getAllBooks() throws Exception{
-        try{
+    public List<DTOBooks> getAllBooks() throws Exception {
+        try {
             List<Books> lstBooks = persistenceSB.getAllBooks();
             List<DTOBooks> lstDto = new ArrayList<DTOBooks>();
             for (int i = 0; i < lstBooks.size(); i++) {
                 DTOBooks dto = this.transformEntityToDtoSB.transformBookToDTOBooks(lstBooks.get(i));
                 lstDto.add(dto);
-                
             }
             return lstDto;
-        }
-        catch(Exception e){
-            return null;
+        } catch (EJBException e) {
+            return new ArrayList<DTOBooks>();
+        } catch (Exception e) {
+            throw new EntityNotExistException(e.getMessage(), e);
         }
     }
 }

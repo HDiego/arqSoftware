@@ -17,6 +17,6 @@ import javax.ejb.Local;
 @Local
 public interface MessagesSBLocal {
     void addMessages(DTOMessages message) throws Exception;
-    List<DTOMessages> getMessages(String user);
+    List<DTOMessages> getMessages(String user) throws Exception;
     void messageSeen(DTOMessages message) throws Exception;
 }

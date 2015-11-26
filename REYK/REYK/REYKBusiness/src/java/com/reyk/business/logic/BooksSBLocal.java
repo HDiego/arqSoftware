@@ -19,7 +19,7 @@ public interface BooksSBLocal {
     
     void addBook(DTOBooks dtoBook) throws Exception;
     List<DTOBooks> getBooksByAuthor(String author) throws Exception;
-    List<DTOBooks> getBooksByTitle(String title) throws Exception;
+    List<DTOBooks> getBooksByGenre(String title) throws Exception;
     DTOBooks getBook(String isbn) throws Exception;
     boolean existsBook(String isbn) throws Exception;
     List<DTOBooks> getAllBooks() throws Exception;

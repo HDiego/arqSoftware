@@ -35,9 +35,9 @@ public class Users {
     @Column(name = "user_Id")
     private Long id;
     
-    @NotNull
+    
     private String name;
-    @NotNull
+    
     private String surname;
     
     @NotNull
@@ -46,8 +46,7 @@ public class Users {
     
     @NotNull
     private String password;
-    
-    @NotNull
+   
     private String email;
     
     private boolean suscribed;

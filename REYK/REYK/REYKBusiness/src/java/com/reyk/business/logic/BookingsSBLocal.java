@@ -20,8 +20,5 @@ import javax.persistence.PersistenceException;
 public interface BookingsSBLocal {
     
     void addBooking(DTOBookings booking) throws Exception;
-    void modifyBooking(DTOBookings booking) throws PersistenceException, Exception;
-    void deleteBooking(DTOBookings booking) throws PersistenceException, Exception;
-    List<DTOBookings> getBookingsByUser(DTOUsers u) throws PersistenceException, Exception;
-    Booking getOneBooking(DTOBookings booking) throws PersistenceException;
+    List<DTOBookings> getBookingsByUser(DTOUsers u) throws Exception;
 }

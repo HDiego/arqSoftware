@@ -24,7 +24,6 @@ public class TransformDtoToEntity implements TransformDtoToEntityLocal {
 
     @Override
     public Users transformDTOUserToUser(DTOUsers dtoUser) {
-       
         Users user = new Users();
         user.setName(dtoUser.getName());
         user.setSurname(dtoUser.getSurname());
@@ -33,25 +32,21 @@ public class TransformDtoToEntity implements TransformDtoToEntityLocal {
         user.setPassword(dtoUser.getPassword());
         user.setSuscribed(dtoUser.isSuscribed());
         return user;
-        
     }
     
     @Override
     public Books transformDTOBooksToBooks(DTOBooks dtoBooks){
-        
         Books book = new Books();
         book.setAuthor(dtoBooks.getAuthor());
         book.setGenre(dtoBooks.getGenre());
         book.setIsbn(dtoBooks.getIsbn());
         book.setPrice(dtoBooks.getPrice());
         book.setTitle(dtoBooks.getTitle());
-        
         return book;
     }
     
     @Override
     public Booking transformDTOBookingsToBooking(DTOBookings dtoBookings){
-        
         Booking booking = new Booking();
         Books books = this.transformDTOBooksToBooks(dtoBookings.getBooks());
         Users users = this.transformDTOUserToUser(dtoBookings.getUser());
@@ -59,7 +54,6 @@ public class TransformDtoToEntity implements TransformDtoToEntityLocal {
         booking.setUser(users);
         booking.setInitialDate(dtoBookings.getInitialDate());
         booking.setFinalDate(dtoBookings.getFinalDate());
-        
         return booking;
     }
 

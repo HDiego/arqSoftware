@@ -31,19 +31,19 @@ public interface PersistenceSBLocal {
     
     void addToken(Token t) throws Exception;
     void deleteToken(Token t) throws Exception;
-    Token getToken(String t) throws EJBException;
+    Token getToken(String t) throws EJBException, Exception;
     List<Token> getUserTokens(Users u) throws Exception;
     void deleteUserTokens(Users user) throws Exception;
     
     void addBooking(Booking booking) throws Exception;
     void modifyBooking(Booking booking) throws PersistenceException, Exception;
     void deleteBooking(Booking booking) throws PersistenceException, Exception;
-    List<Booking> getBookingsByUser(Users u) throws PersistenceException;
-    Booking getOneBooking(Booking booking) throws PersistenceException;
+    List<Booking> getBookingsByUser(Users u) throws PersistenceException, Exception;
+    Booking getOneBooking(Booking booking) throws PersistenceException, Exception;
     
     void addBook(Books book) throws Exception;
     List<Books> getBooksByAuthor(String author) throws Exception;
-    List<Books> getBooksByTitle(String title) throws Exception;
+    List<Books> getBooksByGenre(String genre) throws Exception;
     Books getBook(String isbn) throws Exception;
     List<Books> getAllBooks() throws Exception; 
     

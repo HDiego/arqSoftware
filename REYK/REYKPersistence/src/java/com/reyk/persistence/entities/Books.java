@@ -23,7 +23,7 @@ import javax.validation.constraints.NotNull;
     @NamedQuery(name = "getBook",
             query = "select b from Books b where b.isbn = :isbn"),
     @NamedQuery(name = "getBooksByAuthor", query = "select b from Books b where b.author = :author"),
-    @NamedQuery(name = "getBooksByTitle", query = "select b from Books b where b.title = :title"),
+    @NamedQuery(name = "getBooksByGenre", query = "select b from Books b where b.genre = :genre"),
     @NamedQuery(name = "getAllBooks", query = "select b from Books b")})
 
 @Entity
@@ -36,14 +36,14 @@ public class Books {
     private Long id;
     @NotNull
     private String author;
-    @NotNull
+    
     private String title;
     @NotNull
     @Column(unique = true)
     private String isbn;
     @NotNull
     private String genre;
-    @NotNull
+    
     private Double price;
 
     public Long getId() {

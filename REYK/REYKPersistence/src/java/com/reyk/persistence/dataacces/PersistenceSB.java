@@ -15,6 +15,7 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
@@ -41,10 +42,9 @@ public class PersistenceSB implements PersistenceSBLocal {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void addUser(Users u) throws Exception {
         try {
-
             em.persist(u);
         } catch (Exception e) {
-            throw new Exception("User already exists", e);
+            throw new EntityExistsException("Unknown Error, try again later", e);
         }
     }
 
@@ -53,16 +53,23 @@ public class PersistenceSB implements PersistenceSBLocal {
     public Users getUser(String username) throws Exception {
         try {
             return (Users) em.createNamedQuery("getUser").setParameter("user", username).getSingleResult();
-
+        } catch (NoResultException e) {
+            throw new EJBException("The user " + username + " was not found");
         } catch (Exception e) {
-            return null;
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public Users getUser(Long id) throws Exception {
-        return em.find(Users.class, id);
+        try {
+            return em.find(Users.class, id);
+        } catch (NoResultException e) {
+            throw new EJBException("The user with the id " + id + " could not be found");
+        } catch (Exception e) {
+            throw new Exception("Unknown error, try again later", e);
+        }
     }
 
     @Override
@@ -70,20 +77,28 @@ public class PersistenceSB implements PersistenceSBLocal {
         try {
             List<Users> listUser = (List<Users>) em.createNamedQuery("getAllUsers").getResultList();
             return listUser;
+        } catch (NoResultException e) {
+            throw new EJBException("No users found");
         } catch (Exception e) {
-            return null;
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void deleteUser(Users user) throws PersistenceException, Exception {
-        if (user.getId() != null) {
-            user = em.merge(user);
-            this.deleteUserTokens(user);
-            em.remove(user);
-        } else {
-            throw new PersistenceException("The user couldn't be deleted");
+        try {
+            if (user.getId() != null) {
+                user = em.merge(user);
+                this.deleteUserTokens(user);
+                em.remove(user);
+            } else {
+                throw new PersistenceException("The user couldn't be deleted");
+            }
+        } catch (NoResultException e) {
+            throw new EJBException("The user " + user.getUsername() + " could not be found");
+        } catch (Exception e) {
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
@@ -96,10 +111,10 @@ public class PersistenceSB implements PersistenceSBLocal {
             } else {
                 em.persist(u);
             }
-        } catch (PersistenceException e) {
-            throw new EntityNotFoundException("The user: " + u.getUsername() + " was not found.");
+        } catch (NoResultException e) {
+            throw new EJBException("The user: " + u.getUsername() + " was not found.");
         } catch (Exception e) {
-            throw new Exception("Something happened", e);
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
@@ -111,25 +126,32 @@ public class PersistenceSB implements PersistenceSBLocal {
         try {
             em.persist(t);
         } catch (Exception e) {
-            throw new Exception("Unexpected error", e);
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void deleteToken(Token t) throws Exception {
-        // if(t.getId() != null)
-        t = em.merge(t);
-        em.remove(t);
+        try {
+            t = em.merge(t);
+            em.remove(t);
+        } catch (NoResultException e) {
+            throw new EJBException("Could not logout");
+        } catch (Exception e) {
+            throw new Exception("Unknown error, try again later", e);
+        }
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Token getToken(String t) throws EJBException {
+    public Token getToken(String t) throws EJBException, Exception {
         try {
             return (Token) em.createNamedQuery("getToken").setParameter("token", t).getSingleResult();
         } catch (NoResultException e) {
-            throw new EJBException("Token " + t + " not found");
+            throw new EJBException("Token " + t + " was not found");
+        } catch (Exception e) {
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
@@ -137,11 +159,12 @@ public class PersistenceSB implements PersistenceSBLocal {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public List<Token> getUserTokens(Users u) throws Exception {
         try {
-
             List<Token> tokenLst = em.createNamedQuery("getUserTokens").setParameter("idUser", u).getResultList();
             return tokenLst;
+        } catch (NoResultException e) {
+            throw new EJBException("There was no result", e);
         } catch (Exception e) {
-            throw new Exception("Not found ");
+            throw new Exception("Unknown error, try again later");
         }
     }
 
@@ -152,23 +175,25 @@ public class PersistenceSB implements PersistenceSBLocal {
             List<Token> userTokenList = this.getUserTokens(user);
             for (int i = 0; i < userTokenList.size(); i++) {
                 this.deleteToken(userTokenList.get(i));
-
             }
+        } catch (NoResultException e) {
+            throw new EJBException("The user " + user.getUsername() + "coud not be found");
         } catch (Exception e) {
-            throw new Exception("deleteUserTokens error");
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
-   //</editor-fold>
+    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Booking">
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void addBooking(Booking booking) throws Exception {
         try {
-
             em.persist(booking);
+        } catch (PersistenceException e) {
+            throw new EntityExistsException("Booking already exists", e);
         } catch (Exception e) {
-            throw new Exception("Booking already exists", e);
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
@@ -184,64 +209,67 @@ public class PersistenceSB implements PersistenceSBLocal {
         } catch (PersistenceException e) {
             throw new EntityNotFoundException("The booking for the user: " + booking.getUser() + " was not found.");
         } catch (Exception e) {
-            throw new Exception("Unexpected error while updating booking occur. Please try again.", e);
+            throw new Exception("Unexpected error, try again later", e);
         }
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void deleteBooking(Booking booking) throws PersistenceException, Exception {
-        if (booking.getId() != null) {
-
-            em.remove(booking);
-        } else {
-            throw new PersistenceException("The user couldn't be deleted");
+        try {
+            if (booking.getId() != null) {
+                em.remove(booking);
+            } else {
+                throw new PersistenceException("The booking couldn't be deleted");
+            }
+        } catch (PersistenceException e) {
+            throw new EntityNotFoundException("The booking could not be deleted");
+        } catch (Exception e) {
+            throw new EntityNotFoundException("Unknown error, try again later");
         }
     }
-    
+
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public List<Booking> getBookingsByUser(Users u) throws PersistenceException{
-        try{
-            if(u.getId() != null){
+    public List<Booking> getBookingsByUser(Users u) throws PersistenceException, Exception {
+        try {
+            if (u.getId() != null) {
                 return (List<Booking>) em.createNamedQuery("getBookingsByUser").setParameter("idUsers", u).getResultList();
-                                                                                             
-            }
-            else{
+            } else {
                 return null;
             }
+        } catch (NoResultException e) {
+            throw new EntityNotFoundException("No bookings found");
+        } catch (Exception e) {
+            throw new Exception("Unknown error, try again later", e);
         }
-        catch(PersistenceException pEx){
-            String aux = pEx.getMessage();
-            return null;
-        }
-         
+
     }
-    
+
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Booking getOneBooking(Booking booking) throws PersistenceException{
-        try{
+    public Booking getOneBooking(Booking booking) throws PersistenceException, Exception {
+        try {
             return (Booking) em.createNamedQuery("getOneBooking").
                     setParameter("idUser", booking.getUser()).
-                    setParameter("dateInit", booking.getInitialDate(),TemporalType.DATE).
+                    setParameter("dateInit", booking.getInitialDate(), TemporalType.DATE).
                     getSingleResult();
-        }
-        catch(PersistenceException pEx){
-            return null;
+        } catch (NoResultException e) {
+            throw new EntityNotFoundException("No bookings found");
+        } catch (Exception e) {
+            throw new Exception("Unknown error, try again later", e);
         }
     }
-    
-   //</editor-fold>
+
+    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Books">
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void addBook(Books book) throws Exception {
         try {
-
             em.persist(book);
         } catch (Exception e) {
-            throw new Exception("Booking already exists", e);
+            throw new EntityExistsException("Unknown Error, try again later", e);
         }
     }
 
@@ -249,19 +277,25 @@ public class PersistenceSB implements PersistenceSBLocal {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public List<Books> getBooksByAuthor(String author) throws Exception {
         try {
-            return (List<Books>) em.createNamedQuery("getBooksByAuthor").setParameter("author", author).getResultList();
+            List<Books> listBooks = (List<Books>) em.createNamedQuery("getBooksByAuthor").setParameter("author", author).getResultList();
+            return listBooks;
+        } catch (NoResultException e) {
+            throw new EJBException("No books found written by: " + author);
         } catch (Exception e) {
-            return null;
+            throw new Exception("Unkonwn error, try again later");
         }
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public List<Books> getBooksByTitle(String title) throws Exception {
+    public List<Books> getBooksByGenre(String genre) throws Exception {
         try {
-            return (List<Books>) em.createNamedQuery("getBooksByTitle").setParameter("title", title).getResultList();
+            List<Books> listBook = (List<Books>) em.createNamedQuery("getBooksByGenre").setParameter("genre", genre).getResultList();
+            return listBook;
+        } catch (NoResultException e) {
+            throw new EJBException("No books found with the genre: " + genre);
         } catch (Exception e) {
-            return null;
+            throw new Exception("Unknown error, try again later");
         }
     }
 
@@ -269,31 +303,39 @@ public class PersistenceSB implements PersistenceSBLocal {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public Books getBook(String isbn) throws Exception {
         try {
-            return (Books) em.createNamedQuery("getBook").setParameter("isbn", isbn).getSingleResult();
+            Books book = (Books) em.createNamedQuery("getBook").setParameter("isbn", isbn).getSingleResult();
+            return book;
+        } catch (NoResultException e) {
+            throw new EJBException("The book with isbn: " + isbn + " could not be found");
         } catch (Exception e) {
-            return null;
+            throw new Exception("Unkonwn error, try again later", e);
         }
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public List<Books> getAllBooks() {
+    public List<Books> getAllBooks() throws Exception {
         try {
-            return em.createNamedQuery("getAllBooks").getResultList();
+            List<Books> listBook = em.createNamedQuery("getAllBooks").getResultList();
+            return listBook;
+        } catch (NoResultException e) {
+            throw new EJBException("No books found");
         } catch (Exception e) {
-            return null;
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Messages">
     @Override
     public void addMessage(Messages message) throws Exception {
         try {
+            message.setUser(this.getUser(message.getUser().getUsername()));
             em.persist(message);
+        } catch (PersistenceException e) {
+            throw new EntityExistsException("Message already exists", e);
         } catch (Exception e) {
-            throw new Exception("Could not save Message", e);
+            throw new Exception("Unknown error, try again later", e);
         }
     }
 
@@ -301,8 +343,10 @@ public class PersistenceSB implements PersistenceSBLocal {
     public List<Messages> getAllMessage() throws Exception {
         try {
             return em.createNamedQuery("getAllMessages").getResultList();
+        } catch (NoResultException e) {
+            throw new EntityNotFoundException("No messages found");
         } catch (Exception e) {
-            return null;
+            throw new Exception("Unknown error, try again later");
         }
     }
 
@@ -311,22 +355,25 @@ public class PersistenceSB implements PersistenceSBLocal {
         try {
             Users u = this.getUser(user);
             return em.createNamedQuery("getMessages").setParameter("idUser", u).getResultList();
+        } catch (NoResultException e) {
+            throw new EntityNotFoundException("No messages found");
         } catch (Exception e) {
-            return null;
+            throw new Exception("Unknown error, try again later");
         }
     }
 
     @Override
     public void messageSeen(Messages message) throws Exception {
         try {
-            if(message.getId() != null) {
+            if (message.getId() != null) {
                 em.merge(message);
             } else {
                 em.persist(message);
             }
-                
+        } catch (NoResultException e) {
+            throw new EntityNotFoundException("No messages found");
         } catch (Exception e) {
-
+            throw new Exception("Unknown error, try again later");
         }
     }
     //</editor-fold>
